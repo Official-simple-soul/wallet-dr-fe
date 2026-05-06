@@ -33,7 +33,6 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({
   claimStatus,
   showSuccessModal,
   onClaim,
-  onConnect,
   isConnected,
   isConnecting,
   setIsOpen,

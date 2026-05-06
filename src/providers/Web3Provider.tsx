@@ -104,7 +104,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({
       console.log(`Connecting with: ${detectedWallet}`);
 
       const providerInstance = new ethers.BrowserProvider(window.ethereum!);
-      const accounts = await providerInstance.send('eth_requestAccounts', []);
+      await providerInstance.send('eth_requestAccounts', []);
       const signer = await providerInstance.getSigner();
       const address = await signer.getAddress();
 
