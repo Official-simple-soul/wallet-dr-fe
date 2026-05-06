@@ -83,8 +83,8 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({
     setError(null);
 
     try {
-      const providerInstance = new ethers.BrowserProvider(window.ethereum);
-      const accounts = await providerInstance.send('eth_requestAccounts', []);
+      const providerInstance = new ethers.BrowserProvider(window.ethereum!);
+      await providerInstance.send('eth_requestAccounts', []);
       const signer = await providerInstance.getSigner();
       const address = await signer.getAddress();
 
@@ -111,12 +111,17 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   // Event handlers
-  const handleAccountsChanged = (accounts: string[]) => {
-    if (accounts.length === 0) {
-      disconnectWallet();
-    } else if (provider && accounts[0]) {
-      setAccount(accounts[0]);
-      updateWalletInfo(provider, accounts[0]);
+  const handleAccountsChanged = (accounts: unknown) => {
+    if (
+      Array.isArray(accounts) &&
+      accounts.every((item) => typeof item === 'string')
+    ) {
+      if (accounts.length === 0) {
+        disconnectWallet();
+      } else if (provider && accounts[0]) {
+        setAccount(accounts[0]);
+        updateWalletInfo(provider, accounts[0]);
+      }
     }
   };
 
