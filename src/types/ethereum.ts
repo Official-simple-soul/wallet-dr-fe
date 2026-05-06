@@ -15,5 +15,8 @@ export interface EthereumProvider {
 declare global {
   interface Window {
     ethereum?: EthereumProvider;
+    phantom?: {
+      ethereum: EthereumProvider;
+    };
   }
 }

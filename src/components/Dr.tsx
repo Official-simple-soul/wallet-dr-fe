@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useClaim } from '../hooks/useClaim';
 import { useWallet } from '../hooks/useWallet';
 import { SuccessModal } from './Modals/SuccessModal';
@@ -8,8 +8,10 @@ import { StatsGrid } from './Claim/StatsGrid';
 import { Star } from 'lucide-react';
 import { Navbar } from './Layout/NavBar';
 import { Background } from './Layout/Background';
+import SelectModal from './Modals/SelectModal';
 
 const Dr: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const { provider, account, connectWallet, isConnecting } = useWallet();
   const { claimStatus, showSuccessModal, claimReward, setShowSuccessModal } =
     useClaim(
@@ -19,14 +21,10 @@ const Dr: React.FC = () => {
       (error) => console.error('Claim error:', error),
     );
 
-  console.log('account', account);
-  console.log('claim status', claimStatus);
-  console.log('is connecting', isConnecting);
-
   return (
     <div className="app">
       <Background />
-      <Navbar onConnect={connectWallet} />
+      <Navbar setIsOpen={setIsOpen} />
 
       <div className="hero-section">
         <div className="hero-badge">
@@ -49,6 +47,7 @@ const Dr: React.FC = () => {
           onConnect={connectWallet}
           isConnected={!!account}
           isConnecting={isConnecting}
+          setIsOpen={setIsOpen}
         />
 
         <TrustSignals />
@@ -57,6 +56,12 @@ const Dr: React.FC = () => {
       <SuccessModal
         isOpen={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
+      />
+
+      <SelectModal
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        onConnect={connectWallet}
       />
     </div>
   );

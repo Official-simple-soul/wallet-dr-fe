@@ -1,21 +1,37 @@
 import React from 'react';
-import { Sparkles, Wallet, CheckCircle } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
+import { ConnectButton } from '../Wallet/ConnectButton';
 import { formatAddress } from '../../utils/helper';
 
-interface NavbarProps {
-  onConnect: () => void;
-}
+export const Navbar = ({
+  setIsOpen,
+}: {
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  const { account, isConnected, isConnecting, walletType, disconnectWallet } =
+    useWallet();
 
-export const Navbar: React.FC<NavbarProps> = ({ onConnect }) => {
-  const { account, isConnected, isConnecting } = useWallet();
+  const getWalletIcon = () => {
+    switch (walletType) {
+      case 'metamask':
+        return '🦊';
+      case 'trustwallet':
+        return '📱';
+      case 'coinbase':
+        return '🏦';
+      case 'rainbow':
+        return '🌈';
+      default:
+        return '🔗';
+    }
+  };
 
   return (
-    <nav className="navbar">
+    <nav className="relative z-10 border-b border-white/5 backdrop-blur-md bg-[rgba(10,12,16,0.8)] px-2! py-4! md:p-4! sticky top-0">
       <div className="nav-container">
         <div className="logo">
-          <Sparkles size={24} />
-          <span>RewardHub</span>
+          <img src="/favicon.png" alt="" className="size-8 rounded-md" />
+          <span className="hidden md:flex">RewardHub</span>
         </div>
         <div className="nav-links">
           <a href="#">Claim</a>
@@ -23,21 +39,19 @@ export const Navbar: React.FC<NavbarProps> = ({ onConnect }) => {
           <a href="#">Support</a>
         </div>
         {!isConnected ? (
-          <button
-            className="btn-connect-header"
-            onClick={onConnect}
-            disabled={isConnecting}
-          >
-            <Wallet size={18} />
-            {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-          </button>
+          <ConnectButton setIsOpen={setIsOpen} isConnecting={isConnecting} />
         ) : (
           <div className="wallet-badge">
-            <CheckCircle size={14} />
+            <span className="wallet-icon">{getWalletIcon()}</span>
             {formatAddress(account!)}
+            <button className="disconnect-btn" onClick={disconnectWallet}>
+              ✕
+            </button>
           </div>
         )}
       </div>
     </nav>
   );
 };
+
+// padding: 1rem 2rem;

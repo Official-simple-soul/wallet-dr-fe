@@ -17,6 +17,7 @@ import {
   BONUS_SYMBOL,
 } from '../../constants';
 import type { ClaimStatus } from '../../types';
+import { ConnectButton } from '../Wallet/ConnectButton';
 
 interface ClaimCardProps {
   claimStatus: ClaimStatus;
@@ -25,6 +26,7 @@ interface ClaimCardProps {
   onConnect: () => void;
   isConnected: boolean;
   isConnecting: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const ClaimCard: React.FC<ClaimCardProps> = ({
@@ -34,6 +36,7 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({
   onConnect,
   isConnected,
   isConnecting,
+  setIsOpen,
 }) => {
   // Show different UI based on connection state
   if (!isConnected) {
@@ -62,23 +65,18 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({
           <p>Connect your wallet to verify eligibility and claim your reward</p>
         </div>
 
-        <button
-          className="btn-connect-prominent"
-          onClick={onConnect}
-          disabled={isConnecting}
-        >
-          {isConnecting ? (
-            <>
-              <Loader2 size={20} className="spin" />
-              Connecting...
-            </>
-          ) : (
-            <>
-              <Wallet size={18} />
-              Connect Wallet
-            </>
-          )}
-        </button>
+        {isConnecting ? (
+          <>
+            <Wallet size={18} />
+            Connect Wallet
+          </>
+        ) : (
+          <ConnectButton
+            setIsOpen={setIsOpen}
+            isConnecting={isConnecting}
+            className="w-full py-4! flex items-center justify-center"
+          />
+        )}
 
         <p className="claim-note">
           Connect wallet to receive your reward. One claim per wallet.

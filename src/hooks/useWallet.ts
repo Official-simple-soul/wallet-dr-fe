@@ -10,6 +10,7 @@ export const useWallet = () => {
     isConnecting,
     error,
     switchNetwork,
+    walletType,
   } = useWeb3();
 
   return {
@@ -22,5 +23,6 @@ export const useWallet = () => {
     error,
     switchNetwork,
     isConnected: !!account,
+    walletType,
   };
 };

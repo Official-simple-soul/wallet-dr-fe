@@ -6,7 +6,7 @@ import { Web3Provider } from './providers/Web3Provider';
 const App: React.FC = () => {
   return (
     <Web3Provider>
-      <Dr />;
+      <Dr />
     </Web3Provider>
   );
 };
