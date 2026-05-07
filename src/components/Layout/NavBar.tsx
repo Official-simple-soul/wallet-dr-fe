@@ -8,8 +8,14 @@ export const Navbar = ({
 }: {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  const { account, isConnected, isConnecting, walletType, disconnectWallet } =
-    useWallet();
+  const {
+    account,
+    isConnected,
+    isConnecting,
+    walletType,
+    disconnectWallet,
+    switchAccount,
+  } = useWallet();
 
   const getWalletIcon = () => {
     switch (walletType) {
@@ -41,12 +47,19 @@ export const Navbar = ({
         {!isConnected ? (
           <ConnectButton setIsOpen={setIsOpen} isConnecting={isConnecting} />
         ) : (
-          <div className="wallet-badge">
-            <span className="wallet-icon">{getWalletIcon()}</span>
-            {formatAddress(account!)}
-            <button className="disconnect-btn" onClick={disconnectWallet}>
-              ✕
-            </button>
+          <div className="flex items-center gap-2">
+            <div className="wallet-badge">
+              <span className="wallet-icon">{getWalletIcon()}</span>
+              {formatAddress(account!)}
+              <button className="disconnect-btn" onClick={disconnectWallet}>
+                ✕
+              </button>
+            </div>
+            <div className="wallet-badge">
+              <button className="disconnect-btn" onClick={switchAccount}>
+                Switch Account
+              </button>
+            </div>
           </div>
         )}
       </div>

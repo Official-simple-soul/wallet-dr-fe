@@ -12,6 +12,7 @@ interface Web3ContextType {
   isConnecting: boolean;
   error: string | null;
   switchNetwork: () => Promise<void>;
+  switchAccount: () => Promise<void>;
   walletType: string | null;
 }
 
@@ -50,7 +51,6 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [walletType, setWalletType] = useState<string | null>(null);
-
   const isWeb3Available = typeof window !== 'undefined' && !!window.ethereum;
 
   const switchNetwork = async () => {
@@ -83,7 +83,6 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({
 
   const connectWallet = async () => {
     if (!isWeb3Available) {
-      // Show wallet installation options
       const shouldInstall = confirm(
         'No wallet detected. Would you like to install MetaMask or open in Trust Wallet browser?',
       );
@@ -97,31 +96,44 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({
     setError(null);
 
     try {
-      // Detect wallet type first
       const detectedWallet = detectWalletType();
       setWalletType(detectedWallet);
-
       console.log(`Connecting with: ${detectedWallet}`);
 
       const providerInstance = new ethers.BrowserProvider(window.ethereum!);
+
+      // ✅ Check network FIRST (without requesting accounts yet)
+      const network = await providerInstance.getNetwork();
+      const currentChainId = Number(network.chainId);
+
+      if (currentChainId !== TARGET_CHAIN_ID) {
+        // Ask user to switch network before connecting
+        const shouldSwitch = confirm(
+          `This dApp requires BNB Chain. Would you like to switch networks?`,
+        );
+
+        if (shouldSwitch) {
+          await switchNetwork();
+          // After switch, reload or continue
+          window.location.reload();
+          return;
+        } else {
+          throw new Error('Please switch to BNB Chain to continue');
+        }
+      }
+
+      // ✅ Now request accounts (MetaMask popup)
       await providerInstance.send('eth_requestAccounts', []);
       const signer = await providerInstance.getSigner();
       const address = await signer.getAddress();
 
       setProvider(providerInstance);
       setAccount(address);
-
-      const network = await providerInstance.getNetwork();
       setWalletInfo({
         address,
         balance: null,
-        chainId: Number(network.chainId),
+        chainId: TARGET_CHAIN_ID,
       });
-
-      // Check network
-      if (Number(network.chainId) !== TARGET_CHAIN_ID) {
-        await switchNetwork();
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to connect');
     } finally {
@@ -135,6 +147,17 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({
     setWalletInfo(null);
     setWalletType(null);
     setError(null);
+  };
+
+  const switchAccount = async () => {
+    try {
+      await window?.ethereum?.request({
+        method: 'wallet_requestPermissions',
+        params: [{ eth_accounts: {} }],
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
@@ -174,6 +197,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({
         isConnecting,
         error,
         switchNetwork,
+        switchAccount,
         walletType,
       }}
     >

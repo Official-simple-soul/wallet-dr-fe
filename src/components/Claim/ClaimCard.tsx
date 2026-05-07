@@ -9,6 +9,7 @@ import {
   Loader2,
   ArrowRight,
   Wallet,
+  X,
 } from 'lucide-react';
 import {
   REWARD_AMOUNT,
@@ -24,6 +25,7 @@ interface ClaimCardProps {
   showSuccessModal: boolean;
   onClaim: () => void;
   onConnect: () => void;
+  onClearError?: () => void;
   isConnected: boolean;
   isConnecting: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -35,8 +37,11 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({
   onClaim,
   isConnected,
   isConnecting,
+  onClearError,
   setIsOpen,
 }) => {
+  console.log('connection state', isConnected);
+  console.log('connection status', claimStatus);
   // Show different UI based on connection state
   if (!isConnected) {
     return (
@@ -64,18 +69,11 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({
           <p>Connect your wallet to verify eligibility and claim your reward</p>
         </div>
 
-        {isConnecting ? (
-          <>
-            <Wallet size={18} />
-            Connect Wallet
-          </>
-        ) : (
-          <ConnectButton
-            setIsOpen={setIsOpen}
-            isConnecting={isConnecting}
-            className="w-full py-4! flex items-center justify-center"
-          />
-        )}
+        <ConnectButton
+          setIsOpen={setIsOpen}
+          isConnecting={isConnecting}
+          className="w-full py-4! flex items-center justify-center"
+        />
 
         <p className="claim-note">
           Connect wallet to receive your reward. One claim per wallet.
@@ -115,10 +113,18 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({
         </div>
       </div>
 
+      {/* Error Message with Dismiss Button */}
       {claimStatus.status === 'error' && (
         <div className="error-message">
           <AlertCircle size={16} />
-          {claimStatus.message}
+          <span className="flex-1">{claimStatus.message}</span>
+          <button
+            onClick={onClearError}
+            className="ml-2 p-1 hover:bg-white/10 rounded transition"
+            aria-label="Dismiss error"
+          >
+            <X size={14} />
+          </button>
         </div>
       )}
 

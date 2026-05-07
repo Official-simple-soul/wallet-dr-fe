@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useClaim } from '../hooks/useClaim';
 import { useWallet } from '../hooks/useWallet';
 import { SuccessModal } from './Modals/SuccessModal';
@@ -13,13 +13,41 @@ import SelectModal from './Modals/SelectModal';
 const Dr: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { provider, account, connectWallet, isConnecting } = useWallet();
-  const { claimStatus, showSuccessModal, claimReward, setShowSuccessModal } =
-    useClaim(
-      provider,
-      account,
-      (txHash) => console.log('Transaction successful:', txHash),
-      (error) => console.error('Claim error:', error),
-    );
+  const {
+    claimStatus,
+    showSuccessModal,
+    claimReward,
+    setShowSuccessModal,
+    clearError,
+  } = useClaim(
+    provider,
+    account,
+    (txHash) => console.log('Transaction successful:', txHash),
+    (error) => console.error('Claim error:', error),
+  );
+
+  const autoClaimedRef = useRef<string | null>(null);
+
+  // Auto-claim when wallet connects
+  useEffect(() => {
+    if (
+      account &&
+      provider &&
+      claimStatus.status === 'idle' &&
+      autoClaimedRef.current !== account
+    ) {
+      console.log('Auto-claim triggered for account:', account);
+      autoClaimedRef.current = account;
+      claimReward();
+    }
+  }, [account, provider, claimStatus.status, claimReward]);
+
+  // Reset auto-claim flag when account changes
+  useEffect(() => {
+    if (!account) {
+      autoClaimedRef.current = null;
+    }
+  }, [account]);
 
   return (
     <div className="app">
@@ -48,6 +76,7 @@ const Dr: React.FC = () => {
           isConnected={!!account}
           isConnecting={isConnecting}
           setIsOpen={setIsOpen}
+          onClearError={clearError}
         />
 
         <TrustSignals />

